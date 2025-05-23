@@ -84,3 +84,34 @@ if st.button("実行開始"):
             subprocess.run(cmd)
 
             st.success("Selenium処理が完了しました。")
+
+# ← ファイルの先頭で追加
+from assign_automation import run_batch_assignment
+
+# 実行ボタン押下時に実行する本体処理（末尾に追記）
+if st.button("Seleniumで自動割当を実行"):
+    if not uploaded_file:
+        st.error("Excelファイルをアップロードしてください。")
+    elif not assignments:
+        st.error("コース名とドライバー名を入力してください。")
+    else:
+        xls = pd.ExcelFile(uploaded_file)
+        execution_pairs = []
+
+        for sheet_name in xls.sheet_names:
+            course_code = get_course_from_sheet_name(sheet_name)
+            df = xls.parse(sheet_name, header=None)
+            tracking_ids = extract_tracking_ids(df)
+
+            for a in assignments:
+                if a["course"] == course_code:
+                    for tid in tracking_ids:
+                        execution_pairs.append({
+                            "tracking_id": tid,
+                            "driver_name": a["driver"]
+                        })
+
+        if execution_pairs:
+            run_batch_assignment(execution_pairs, test_mode=is_test_mode)
+        else:
+            st.warning("一致するコース名が見つかりませんでした。")
