@@ -7,28 +7,39 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import json
 
+# --- Streamlitから呼び出す用の関数（先に定義）
+def run_batch_assignment(pairs, test_mode=True):
+    """
+    pairs: List of dicts
+    e.g. [{"tracking_id": "TST123", "driver_name": "山田 太郎"}, ...]
+    """
+    driver = launch_chrome_temp()
+    for pair in pairs:
+        process_assignment(driver, pair["tracking_id"], pair["driver_name"], test_mode=test_mode)
+    input("✅ Enterでブラウザを閉じます...")
+    driver.quit()
+
+# --- Chrome起動とログイン待機
 def launch_chrome_temp():
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
     driver = webdriver.Chrome(service=Service(), options=options)
 
-    # ログインページを開く
     driver.get("https://www.amazonlogistics.jp/station/dashboard/problemsolvemanage")
     print("🔐 Amazonログインしてください（30秒待機）...")
     time.sleep(30)
     return driver
 
+# --- タブ遷移処理
 def go_to_on_road_tab(driver):
     wait = WebDriverWait(driver, 15)
     try:
-        # インナーiframeに切り替え
         iframe = wait.until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, "iframe[src*='node-exceptions.last-mile.amazon.dev']")
         ))
         driver.switch_to.frame(iframe)
         print("🖐 iframeに切り替え完了")
 
-        # On-road management タブの取得とクリック
         on_road_tab = wait.until(EC.presence_of_element_located(
             (By.XPATH, "//*[normalize-space(text())='On-road management']")
         ))
@@ -37,7 +48,6 @@ def go_to_on_road_tab(driver):
         driver.execute_script("arguments[0].click();", on_road_tab)
         print("🔹 On-road management タブをJSクリックしました")
 
-        # 検索欄表示を待機
         wait.until(EC.presence_of_element_located(
             (By.XPATH, "//input[contains(@placeholder, 'Tracking')]")
         ))
@@ -45,10 +55,10 @@ def go_to_on_road_tab(driver):
     except Exception as e:
         print(f"❌ タブクリックに失敗しました: {e}")
 
+# --- 1件分の割当処理
 def process_assignment(driver, tracking_id, driver_name, test_mode=True):
     wait = WebDriverWait(driver, 10)
 
-    # On-road管理タブへ遷移
     go_to_on_road_tab(driver)
 
     try:
@@ -95,16 +105,23 @@ def process_assignment(driver, tracking_id, driver_name, test_mode=True):
     if test_mode:
         print("🧪 テストモード中（ここで送信停止）")
 
+# --- CLI実行時のみ動作（Streamlitと共存可能）
 if __name__ == "__main__":
-    # JSONファイル読み込み
-    with open("input_data.json", "r", encoding="utf-8") as f:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", type=str, default="input_data.json", help="JSON input file")
+    parser.add_argument("--test", type=lambda x: x.lower() == "true", default=True, help="テストモード")
+    args = parser.parse_args()
+
+    test_mode = args.test
+
+    with open(args.input, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     assignments = data["assignments"]
-    test_mode = data.get("test_mode", True)
 
     driver = launch_chrome_temp()
-
     for entry in assignments:
         course = entry["course"]
         driver_name = entry["driver"]
@@ -115,19 +132,4 @@ if __name__ == "__main__":
             process_assignment(driver, tid, driver_name, test_mode=test_mode)
 
     input("\n✅ Enterでブラウザを閉じます...")
-    driver.quit()
-
-# assign_automation.py の末尾を次のように変更してください：
-
-def run_batch_assignment(pairs, test_mode=True):
-    """
-    pairs: List of dicts
-    e.g. [{"tracking_id": "TST123", "driver_name": "山田 太郎"}, ...]
-    """
-    driver = launch_chrome_temp()
-
-    for pair in pairs:
-        process_assignment(driver, pair["tracking_id"], pair["driver_name"], test_mode=test_mode)
-
-    input("✅ Enterでブラウザを閉じます...")
     driver.quit()
