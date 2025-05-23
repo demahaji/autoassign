@@ -116,3 +116,18 @@ if __name__ == "__main__":
 
     input("\n✅ Enterでブラウザを閉じます...")
     driver.quit()
+
+# assign_automation.py の末尾を次のように変更してください：
+
+def run_batch_assignment(pairs, test_mode=True):
+    """
+    pairs: List of dicts
+    e.g. [{"tracking_id": "TST123", "driver_name": "山田 太郎"}, ...]
+    """
+    driver = launch_chrome_temp()
+
+    for pair in pairs:
+        process_assignment(driver, pair["tracking_id"], pair["driver_name"], test_mode=test_mode)
+
+    input("✅ Enterでブラウザを閉じます...")
+    driver.quit()
