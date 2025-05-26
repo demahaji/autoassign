@@ -73,17 +73,61 @@ def process_assignment(driver, tracking_id, driver_name, test_mode=True):
     except Exception as e:
         print(f"❌ 検索欄エラー: {e}")
         return
-try:
-    checkbox = wait.until(EC.element_to_be_clickable((
-        By.XPATH, f"//tr[.//a[contains(text(), '{tracking_id}')]]//input[@type='checkbox']"
-    )))
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", checkbox)
-    time.sleep(0.5)
-    checkbox.click()
-    print(f"✅ {tracking_id} のチェックボックスをクリック")
-except Exception as e:
-    print(f"❌ {tracking_id} のチェックボックスエラー: {e}")
-    return
+def process_assignment(driver, tracking_id, driver_name, test_mode=True):
+    wait = WebDriverWait(driver, 10)
+
+    go_to_on_road_tab(driver)
+
+    try:
+        search_input = wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//input[contains(@placeholder, 'Tracking')]")))
+
+        search_input.clear()
+        search_input.send_keys(tracking_id)
+        search_input.send_keys(Keys.RETURN)
+        print(f"🔎 トラッキングIDを検索: {tracking_id}")
+        time.sleep(3)
+    except Exception as e:
+        print(f"❌ 検索欄エラー: {e}")
+        return
+
+    # ✅ インデント修正済み
+    try:
+        checkbox = wait.until(EC.element_to_be_clickable((
+            By.XPATH, f"//tr[.//a[contains(text(), '{tracking_id}')]]//input[@type='checkbox']"
+        )))
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", checkbox)
+        time.sleep(0.5)
+        checkbox.click()
+        print(f"✅ {tracking_id} のチェックボックスをクリック")
+    except Exception as e:
+        print(f"❌ {tracking_id} のチェックボックスエラー: {e}")
+        return
+
+    try:
+        edit_btn = wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//button[contains(text(),'Edit Assignment')]")))
+        edit_btn.click()
+        print("🚰 Edit Assignment ボタンをクリック")
+        time.sleep(2)
+    except Exception as e:
+        print(f"❌ Edit Assignment エラー: {e}")
+        return
+
+    try:
+        driver_input = wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//input[contains(@placeholder, 'name or ID')]")))
+        driver_input.clear()
+        driver_input.send_keys(driver_name)
+        print(f"✅ ドライバー名を入力: {driver_name}")
+        time.sleep(2)
+    except Exception as e:
+        print(f"❌ ドライバー入力エラー: {e}")
+        return
+
+    if test_mode:
+        print("🧪 テストモード中（ここで送信停止）")
+
 
     try:
         edit_btn = wait.until(EC.element_to_be_clickable(
