@@ -2,8 +2,7 @@
 import streamlit as st
 import pandas as pd
 import json
-from assign_automation import run_batch_assignment  # 必須
-
+from assign_automation import run_batch_assignment#必須
 
 st.set_page_config(page_title="Amazon 配送 自動割当ツール", layout="centered")
 st.title("🚚 Amazon 配送 自動割当ツール")
