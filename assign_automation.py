@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import json
 
-# --- Streamlitから呼び出す用の関数
+# --- Streamlitから呼び出す用の関数（先に定義）
 def run_batch_assignment(pairs, test_mode=True):
     """
     pairs: List of dicts
@@ -35,19 +35,22 @@ def go_to_on_road_tab(driver):
     wait = WebDriverWait(driver, 15)
     try:
         iframe = wait.until(EC.presence_of_element_located(
-            (By.CSS_SELECTOR, "iframe[src*='node-exceptions.last-mile.amazon.dev']")))
+            (By.CSS_SELECTOR, "iframe[src*='node-exceptions.last-mile.amazon.dev']")
+        ))
         driver.switch_to.frame(iframe)
         print("🖐 iframeに切り替え完了")
 
         on_road_tab = wait.until(EC.presence_of_element_located(
-            (By.XPATH, "//*[normalize-space(text())='On-road management']")))
+            (By.XPATH, "//*[normalize-space(text())='On-road management']")
+        ))
         driver.execute_script("arguments[0].scrollIntoView(true);", on_road_tab)
         time.sleep(1)
         driver.execute_script("arguments[0].click();", on_road_tab)
         print("🔹 On-road management タブをJSクリックしました")
 
         wait.until(EC.presence_of_element_located(
-            (By.XPATH, "//input[contains(@placeholder, 'Tracking')]")))
+            (By.XPATH, "//input[contains(@placeholder, 'Tracking')]")
+        ))
         print("✅ On-road タブ表示完了")
     except Exception as e:
         print(f"❌ タブクリックに失敗しました: {e}")
@@ -71,15 +74,11 @@ def process_assignment(driver, tracking_id, driver_name, test_mode=True):
         return
 
     try:
-        checkbox = wait.until(EC.element_to_be_clickable((
-            By.XPATH, f"//tr[.//a[contains(text(), '{tracking_id}')]]//input[@type='checkbox']"
-        )))
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", checkbox)
-        time.sleep(0.5)
+        checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='checkbox']")))
         checkbox.click()
-        print(f"✅ {tracking_id} のチェックボックスをクリック")
+        print("✅ 荷物チェックボックスをクリック")
     except Exception as e:
-        print(f"❌ {tracking_id} のチェックボックスエラー: {e}")
+        print(f"❌ 荷物チェックエラー: {e}")
         return
 
     try:
@@ -105,15 +104,6 @@ def process_assignment(driver, tracking_id, driver_name, test_mode=True):
 
     if test_mode:
         print("🧪 テストモード中（ここで送信停止）")
-    else:
-        try:
-            submit_btn = wait.until(EC.element_to_be_clickable(
-                (By.XPATH, "//button[contains(text(),'Submit')]")))
-            submit_btn.click()
-            print("📤 Submit をクリックしました")
-            time.sleep(2)
-        except Exception as e:
-            print(f"❌ Submit ボタンエラー: {e}")
 
 # --- CLI実行時のみ動作（Streamlitと共存可能）
 if __name__ == "__main__":
