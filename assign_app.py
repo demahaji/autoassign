@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
 import json
-# -*- coding: utf-8 -*-
 from assign_automation import run_batch_assignment  # 必須
 
 
