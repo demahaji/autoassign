@@ -1,3 +1,4 @@
+あなた:
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -73,15 +74,13 @@ def process_assignment(driver, tracking_id, driver_name, test_mode=True):
         print(f"❌ 検索欄エラー: {e}")
         return
 
-try:
-    checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='checkbox']")))
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", checkbox)
-    time.sleep(0.5)  # スクロール直後は安定のため少し待つ
-    checkbox.click()
-    print("✅ 荷物チェックボックスをクリック")
-except Exception as e:
-    print(f"❌ 荷物チェックエラー: {e}")
-    return
+    try:
+        checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='checkbox']")))
+        checkbox.click()
+        print("✅ 荷物チェックボックスをクリック")
+    except Exception as e:
+        print(f"❌ 荷物チェックエラー: {e}")
+        return
 
     try:
         edit_btn = wait.until(EC.element_to_be_clickable(
